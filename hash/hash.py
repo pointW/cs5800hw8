@@ -1,10 +1,14 @@
 import urllib
 
+
+MAX_HASH = 10000
+
+
 def hash_function(string):
     h = 0
     for c in string:
         h = 101 * h + ord(c)
-    return h % 256
+    return h % MAX_HASH
 
 
 class Node:
@@ -46,7 +50,7 @@ class Node:
 
 class HashTable:
     def __init__(self):
-        self._list = [None] * 256
+        self._list = [None] * MAX_HASH
 
     def delete(self, key):
         h = hash_function(key)

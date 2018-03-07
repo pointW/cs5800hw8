@@ -48,6 +48,16 @@ class RBTree:
         y.left = x
         x.parent = y
 
+    def _max(self, x):
+        if x.right is self.nil or x is self.nil:
+            return x.value
+        return self._max(x.right)
+
+    def _min(self, x):
+        if x.left is self.nil or x is self.nil:
+            return x.value
+        return self._min(x.left)
+
     def _right_rotate(self, y):
         if y.left is self.nil:
             return
@@ -67,6 +77,19 @@ class RBTree:
         # move y to x.r
         x.right = y
         y.parent = x
+
+    def _search(self, x, val):
+        if x is self.nil or x.value == val:
+            return x
+        elif x.value > val:
+            return self._search(x.left, val)
+        else:
+            return self._search(x.right, val)
+
+    def _sort(self, x):
+        if x is not self.nil:
+            return self._sort(x.left) + [x.value] + self._sort(x.right)
+        return []
 
     def insert(self, z):
         y = self.nil
@@ -124,6 +147,20 @@ class RBTree:
                     self._left_rotate(z.parent.parent)
         self.root.color = BLACK
 
+    def max(self):
+        return self._max(self.root)
+
+    def min(self):
+        return self._min(self.root)
+
+    def search(self, val):
+        return self._search(self.root, val)
+
+    def sort(self):
+        return self._sort(self.root)
+
+
+
 
 def test_rotate():
     y = Node('y')
@@ -169,6 +206,10 @@ def test_insert():
     tree.insert(r8)
     tree.insert(r11)
     tree.insert(r14)
+    print tree.sort()
+    print tree.search(7).value
+    print tree.max()
+    print tree.min()
 
 
 

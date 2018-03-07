@@ -78,6 +78,41 @@ class RBTree:
         x.right = y
         y.parent = x
 
+    def _insert_fixup(self, z):
+        if z.parent is self.nil or z.parent.parent is self.nil:
+            self.root.color = BLACK
+            return
+        while z.parent.color == RED:
+            if z.parent is z.parent.parent.left:
+                y = z.parent.parent.right
+                if y.color == RED:
+                    z.parent.color = BLACK
+                    y.color = BLACK
+                    z.parent.parent.color = RED
+                    z = z.parent.parent
+                else:
+                    if z is z.parent.right:
+                        z = z.parent
+                        self._left_rotate(z)
+                    z.parent.color = BLACK
+                    z.parent.parent.color = RED
+                    self._right_rotate(z.parent.parent)
+            else:
+                y = z.parent.parent.left
+                if y.color == RED:
+                    z.parent.color = BLACK
+                    y.color = BLACK
+                    z.parent.parent.color = RED
+                    z = z.parent.parent
+                else:
+                    if z is z.parent.left:
+                        z = z.parent
+                        self._right_rotate(z)
+                    z.parent.color = BLACK
+                    z.parent.parent.color = RED
+                    self._left_rotate(z.parent.parent)
+        self.root.color = BLACK
+
     def _search(self, x, val):
         if x is self.nil or x.value == val:
             return x
@@ -90,6 +125,72 @@ class RBTree:
         if x is not self.nil:
             return self._sort(x.left) + [x.value] + self._sort(x.right)
         return []
+
+    def _transplant(self, u, v):
+        if u.parent is self.nil:
+            self.root = v
+        elif u is u.parent.left:
+            u.parent.left = v
+        else:
+            u.parent.right = v
+        v.parent = u.parent
+
+    def _delete_fixup(self, x):
+        while x is not self.root and x.color == BLACK:
+            if x is x.parent.left:
+                w = x.parent.right
+                if w.color == RED:
+                    w.color = BLACK
+                    x.parent.color = RED
+                    self._left_rotate(x.parent)
+                    w = x.parent.right
+                if w.left.color == BLACK and w.right.color == BLACK:
+                    w.color = RED
+                    x = x.parent
+                else:
+                    if w.right.color == BLACK:
+                        w.left.color = BLACK
+                        w.color = RED
+                        self._right_rotate(w)
+                        w = x.parent.right
+                    w.color = x.parent.color
+                    x.parent.color = BLACK
+                    w.right.color = BLACK
+                    self._left_rotate(x.parent)
+                    x = self.root
+            else:
+                w = x.parent.left
+                if w.color == RED:
+                    w.color = BLACK
+                    x.parent.color = RED
+                    self._right_rotate(x.parent)
+                    w = x.parent.left
+                if w.right.color == BLACK and w.left.color == BLACK:
+                    w.color = RED
+                    x = x.parent
+                else:
+                    if w.left.color == BLACK:
+                        w.right.color = BLACK
+                        w.color = RED
+                        self._left_rotate(w)
+                        w = x.parent.left
+                    w.color = x.parent.color
+                    x.parent.color = BLACK
+                    w.left.color = BLACK
+                    self._right_rotate(x.parent)
+                    x = self.root
+        x.color = BLACK
+
+    def _print(self, x, height=0):
+        def color(c):
+            if c == RED:
+                return 'r'
+            return 'b'
+        if x is self.nil:
+            return
+        print '    ' * (height-1) + '+---' * (height > 0) + str(x.value) + color(x.color)
+        self._print(x.left, height+1)
+        self._print(x.right, height+1)
 
     def insert(self, z):
         y = self.nil
@@ -110,42 +211,7 @@ class RBTree:
         z.left = self.nil
         z.right = self.nil
         z.color = RED
-        self.insert_fixup(z)
-
-    def insert_fixup(self, z):
-        if z.parent is self.nil or z.parent.parent is self.nil:
-            self.root.color = BLACK
-            return
-        while z.parent.color == RED:
-            if z.parent is z.parent.parent.left:
-                y = z.parent.parent.right
-                if y.color == RED:
-                    z.parent.color = BLACK
-                    y.color = BLACK
-                    z.parent.parent.color = RED
-                    z = z.parent.parent
-                elif z is z.parent.right:
-                    z = z.parent
-                    self._left_rotate(z)
-                else:
-                    z.parent.color = BLACK
-                    z.parent.parent.color = RED
-                    self._right_rotate(z.parent.parent)
-            else:
-                y = z.parent.parent.left
-                if y.color == RED:
-                    z.parent.color = BLACK
-                    y.color = BLACK
-                    z.parent.parent.color = RED
-                    z = z.parent.parent
-                elif z is z.parent.left:
-                    z = z.parent
-                    self._right_rotate(z)
-                else:
-                    z.parent.color = BLACK
-                    z.parent.parent.color = RED
-                    self._left_rotate(z.parent.parent)
-        self.root.color = BLACK
+        self._insert_fixup(z)
 
     def max(self):
         return self._max(self.root)
@@ -159,7 +225,46 @@ class RBTree:
     def sort(self):
         return self._sort(self.root)
 
+    def successor(self, val):
+        node = self.search(val)
+        if node is self.nil:
+            return None
+        return self._min(node.right)
 
+    def predecessor(self, val):
+        node = self.search(val)
+        if node is self.nil:
+            return None
+        return self._max(node.left)
+
+    def delete(self, z):
+        y = z
+        y_original_color = y.color
+        if z.left is self.nil:
+            x = z.right
+            self._transplant(z, z.right)
+        elif z.right is self.nil:
+            x = z.left
+            self._transplant(z, z.left)
+        else:
+            y = self._min(z.right)
+            y_original_color = y.color
+            x = y.right
+            if y.parent is z:
+                x.parent = y
+            else:
+                self._transplant(y, y.right)
+                y.right = z.right
+                y.right.parent = y
+            self._transplant(z, y)
+            y.left = z.left
+            y.left.parent = y
+            y.color = z.color
+        if y_original_color == BLACK:
+            self._delete_fixup(x)
+
+    def print_tree(self):
+        self._print(self.root)
 
 
 def test_rotate():
@@ -206,10 +311,14 @@ def test_insert():
     tree.insert(r8)
     tree.insert(r11)
     tree.insert(r14)
-    print tree.sort()
-    print tree.search(7).value
-    print tree.max()
-    print tree.min()
+    tree.print_tree()
+    tree.delete(r1)
+    tree.print_tree()
+    tree.delete(r2)
+    tree.print_tree()
+    tree.delete(r4)
+    tree.print_tree()
+    aaaaa = 1
 
 
 

@@ -229,13 +229,25 @@ class RBTree:
         node = self.search(val)
         if node is self.nil:
             return None
-        return self._min(node.right)
+        if node.right is not self.nil:
+            return self._min(node.right)
+        y = node.parent
+        while y is not self.nil and node is y.right:
+            node = y
+            y = y.parent
+        return y.value
 
     def predecessor(self, val):
         node = self.search(val)
         if node is self.nil:
             return None
-        return self._max(node.left)
+        if node.left is not self.nil:
+            return self._max(node.left)
+        y = node.parent
+        while y is not self.nil and node is y.left:
+            node = y
+            y = y.parent
+        return y.value
 
     def delete(self, z):
         y = z

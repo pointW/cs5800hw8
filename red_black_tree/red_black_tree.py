@@ -90,10 +90,10 @@ class RBTree:
                     y.color = BLACK
                     z.parent.parent.color = RED
                     z = z.parent.parent
+                elif z is z.parent.right:
+                    z = z.parent
+                    self._left_rotate(z)
                 else:
-                    if z is z.parent.right:
-                        z = z.parent
-                        self._left_rotate(z)
                     z.parent.color = BLACK
                     z.parent.parent.color = RED
                     self._right_rotate(z.parent.parent)
@@ -104,10 +104,10 @@ class RBTree:
                     y.color = BLACK
                     z.parent.parent.color = RED
                     z = z.parent.parent
+                elif z is z.parent.left:
+                    z = z.parent
+                    self._right_rotate(z)
                 else:
-                    if z is z.parent.left:
-                        z = z.parent
-                        self._right_rotate(z)
                     z.parent.color = BLACK
                     z.parent.parent.color = RED
                     self._left_rotate(z.parent.parent)
@@ -191,6 +191,11 @@ class RBTree:
         print '    ' * (height-1) + '+---' * (height > 0) + str(x.value) + color(x.color)
         self._print(x.left, height+1)
         self._print(x.right, height+1)
+
+    def _height(self, x):
+        if x is self.nil:
+            return 0
+        return max(self._height(x.left), self._height(x.right)) + 1
 
     def insert(self, z):
         y = self.nil
@@ -278,6 +283,9 @@ class RBTree:
     def print_tree(self):
         self._print(self.root)
 
+    def height(self):
+        return self._height(self.root)
+
 
 def test_rotate():
     y = Node('y')
@@ -298,6 +306,7 @@ def test_rotate():
 def test_insert():
     r1 = Node(1)
     r2 = Node(2)
+    r3 = Node(3)
     r4 = Node(4)
     r5 = Node(5)
     r7 = Node(7)
@@ -317,6 +326,7 @@ def test_insert():
     tree = RBTree()
     tree.insert(r1)
     tree.insert(r2)
+    tree.insert(r3)
     tree.insert(r4)
     tree.insert(r5)
     tree.insert(r7)
@@ -333,9 +343,54 @@ def test_insert():
     aaaaa = 1
 
 
+def main():
+    in_command_loop = True
+    tree = RBTree()
+    while in_command_loop:
+        inp = raw_input("> ")
+        inp = inp.split()
+        try:
+            i = inp[0]
+            if i == 'insert':
+                a = int(inp[1])
+                tree.insert(Node(a))
+            elif i == 'search':
+                a = int(inp[1])
+                if tree.search(a) is tree.nil:
+                    print 'no such node'
+                else:
+                    print 'node found'
+            elif i == 'sort':
+                print tree.sort()
+            elif i == 'exit':
+                tree.print_tree()
+                in_command_loop = False
+            elif i == 'delete':
+                a = int(inp[1])
+                x = tree.search(a)
+                if x is tree.nil:
+                    print 'no such node'
+                else:
+                    tree.delete(x)
+            elif i == 'successor':
+                a = int(inp[1])
+                print tree.successor(a)
+            elif i == 'predecessor':
+                a = int(inp[1])
+                print tree.predecessor(a)
+            elif i == 'max':
+                print tree.max()
+            elif i == 'min':
+                print tree.min()
+            elif i == 'print':
+                tree.print_tree()
+            else:
+                print 'Error'
+                print 'valid commands: insert d; search d; sort; delete d; successor d; predecessor d; min; max; ' \
+                      'print; exit'
+            print 'height:', tree.height()
+        except IndexError:
+            print 'Error'
 
 
-
-
-
-test_insert()
+main()

@@ -1,4 +1,6 @@
 import urllib
+import string
+import sys
 
 
 MAX_HASH = 10000
@@ -99,15 +101,24 @@ class HashTable:
 def test():
     link = 'http://www.ccs.neu.edu/home/vip/teach/Algorithms//7_hash_RBtree_simpleDS/hw_hash_RBtree/alice_in_wonderland.txt'
     f = urllib.urlopen(link)
-    string = f.read()
-    strings = string.split()
+    text = f.read()
+    strings = text.split()
+    strings = filter(lambda x: x is not '', map(lambda x: x.translate(None, string.punctuation).lower(), strings))
     hash_table = HashTable()
     for s in strings:
         if hash_table.find(s) is not None:
             hash_table.increase(s)
         else:
             hash_table.insert(s, 1)
+
+    orig_stdout = sys.stdout
+    f = open('output.txt', 'w')
+    sys.stdout = f
+
     hash_table.print_all_pairs()
+
+    sys.stdout = orig_stdout
+    f.close()
 
 
 # hash_table = HashTable()
